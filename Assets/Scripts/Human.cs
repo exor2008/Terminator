@@ -4,27 +4,42 @@ using UnityEngine;
 
 using Game.Moving;
 using Game.Shooting;
+using Game.FieldOfView;
 
 namespace Game.Units
 {
-    public class Player : Unit
+    public class Human : Unit
     {
+        public float speed = 5.0f;
         public GameObject player;
         public Camera cam;
 
         Vector3 targetPoint;
 
-        private void Start()
+        new private void Start()
         {
+            base.Start();
+            SetMoveInputBehaviour(new MoveInput());
             SetWalkBehaviour(new HumanoidWalkBehaviour(rb, speed));
             SetShootBehaviour(new DefaultShootBehaviour());
+            
+            FieldOfViewParameters fowParameters = new FieldOfViewParameters(
+                viewRaius,
+                viewAngle,
+                targetMak,
+                obstacleMask,
+                viewMeshFilter,
+                edgeResolveIterations,
+                edgeDstThreshold,
+                meshResolution
+            );
+            SetFieldOfViewBehaviour(new MeshFieldOfViewBehaviour(transform, fowParameters));
         }
 
         void FixedUpdate()
         {
             // Movement
-            moveInput.x = Input.GetAxis("Horizontal");
-            moveInput.z = Input.GetAxis("Vertical");
+            Vector3 moveInput = moveInputBehaviour.GetMoveInput();
             FaceMousePoint();
             walkBehaviour.Move(moveInput, Time.fixedDeltaTime);
 
@@ -34,6 +49,11 @@ namespace Game.Units
                 Vector3 forward = transform.TransformDirection(Vector3.forward);
                 shootBehaviour.Shoot(transform.position, forward);
             }
+        }
+
+        private void LateUpdate()
+        {
+            fieldOfViewBehaviour.DrawFieldOfView();
         }
 
         void FaceMousePoint()

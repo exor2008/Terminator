@@ -10,6 +10,11 @@ namespace Game.Moving
         void Move(Vector3 direction, float dt);
     }
 
+    public interface IMoveInput
+    {
+        public Vector3 GetMoveInput();
+    }
+
     public class HumanoidWalkBehaviour : IWalkBehaviour
     {
         public Rigidbody rb;
@@ -24,6 +29,17 @@ namespace Game.Moving
         public void Move(Vector3 direction, float dt)
         {
             rb.MovePosition(rb.position + direction * speed * dt); //ime.fixedDeltaTime);
+        }
+    }
+
+    public class MoveInput: IMoveInput
+    {
+        public Vector3 GetMoveInput()
+        {
+            Vector3 moveInput = new Vector3();
+            moveInput.x = Input.GetAxis("Horizontal");
+            moveInput.z = Input.GetAxis("Vertical");
+            return moveInput;
         }
     }
 }

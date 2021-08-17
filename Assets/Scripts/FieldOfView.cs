@@ -2,32 +2,74 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-//namespace Game.FieldOfView
-//{
-    public class FieldOfView : MonoBehaviour
+using Util = Game.Utils.Util;
+
+namespace Game.FieldOfView
+{
+    public interface IFieldOfViewBehaviour
+    {
+        public void FindVisibleTargets();
+        public void DrawFieldOfView();
+
+        public List<Transform> GetVisibleTargets();
+    }
+
+    public struct FieldOfViewParameters
     {
         public float viewRaius;
         [Range(0, 360)]
         public float viewAngle;
+
         public LayerMask targetMak;
         public LayerMask obstacleMask;
+
         public MeshFilter viewMeshFilter;
+
         public int edgeResolveIterations;
         public float edgeDstThreshold;
+        public float meshResolution;
+
+        public FieldOfViewParameters(
+            float _viewRaius,
+            float _viewAngle,
+            LayerMask _targetMak,
+            LayerMask _obstacleMask,
+            MeshFilter _viewMeshFilter,
+            int _edgeResolveIterations,
+            float _edgeDstThreshold,
+            float _meshResolution)
+        {
+            viewRaius = _viewRaius;
+            viewAngle = _viewAngle;
+            targetMak = _targetMak;
+            obstacleMask = _obstacleMask;
+            viewMeshFilter = _viewMeshFilter;
+            edgeResolveIterations = _edgeResolveIterations;
+            edgeDstThreshold = _edgeDstThreshold;
+            meshResolution = _meshResolution;
+    }
+    }
+
+    public class MeshFieldOfViewBehaviour : IFieldOfViewBehaviour
+    {
+
+        protected Transform transform;
+        protected FieldOfViewParameters parameters;
 
         Mesh viewMesh;
 
         [HideInInspector]
         public List<Transform> visibleTargets = new List<Transform>();
 
-        public float meshResolution;
+        public MeshFieldOfViewBehaviour(Transform _transform, FieldOfViewParameters _parameters)
+        {
+            parameters = _parameters;
 
-        //public FieldOfView()
-        //{
-        //    viewMesh = new Mesh();
-        //    viewMesh.name = "View Mesh";
-        //    viewMeshFilter.mesh = viewMesh;
-        //}
+            viewMesh = new Mesh();
+            viewMesh.name = "View Mesh";
+            parameters.viewMeshFilter.mesh = viewMesh;
+            transform = _transform;
+        }
         public IEnumerator FindTargetsWithDelay(float delay)
         {
             while (true)
@@ -39,16 +81,19 @@ using UnityEngine;
         public void FindVisibleTargets()
         {
             visibleTargets.Clear();
-            Collider[] targetsInViewRadius = Physics.OverlapSphere(transform.position, viewRaius, targetMak);
+            Collider[] targetsInViewRadius = Physics.OverlapSphere(
+                transform.position, 
+                parameters.viewRaius, 
+                parameters.targetMak);
 
             foreach (Collider ctarget in targetsInViewRadius)
             {
                 Transform target = ctarget.transform;
                 Vector3 dirToTarget = (target.position - transform.position).normalized;
-                if (Vector3.Angle(transform.forward, dirToTarget) < viewAngle / 2)
+                if (Vector3.Angle(transform.forward, dirToTarget) < parameters.viewAngle / 2)
                 {
                     float distToTarget = Vector3.Distance(transform.position, target.position);
-                    if (!Physics.Raycast(transform.position, dirToTarget, distToTarget, obstacleMask))
+                    if (!Physics.Raycast(transform.position, dirToTarget, distToTarget, parameters.obstacleMask))
                     {
                         visibleTargets.Add(target);
                     }
@@ -56,35 +101,30 @@ using UnityEngine;
             }
         }
 
-        public Vector3 DirFromAngle(float angleDeg, bool angleIsGlobal)
+        public List<Transform> GetVisibleTargets()
         {
-            if (!angleIsGlobal)
-            {
-                angleDeg += transform.eulerAngles.y;
-            }
-
-
-            float x = Mathf.Sin(angleDeg * Mathf.Deg2Rad);
-            float z = Mathf.Cos(angleDeg * Mathf.Deg2Rad);
-            return new Vector3(x, 0, z);
+            return visibleTargets;
         }
 
         public void DrawFieldOfView()
         {
-            int stepCount = Mathf.RoundToInt(viewAngle * meshResolution);
-            float stepAngleSize = viewAngle / stepCount;
+            int stepCount = Mathf.RoundToInt(parameters.viewAngle * parameters.meshResolution);
+            float stepAngleSize = parameters.viewAngle / stepCount;
             List<Vector3> viewPoints = new List<Vector3>();
             ViewCastInfo oldViewCast = new ViewCastInfo();
 
             for (int i = 0; i <= stepCount; i++)
             {
-                float angle = transform.eulerAngles.y - viewAngle / 2 + stepAngleSize * i;
+                float angle = transform.eulerAngles.y - parameters.viewAngle / 2 + stepAngleSize * i;
                 ViewCastInfo newViewCast = ViewCast(angle);
 
                 if (i > 0)
                 {
-                    bool edgeDstThresholdExceeded = Mathf.Abs(oldViewCast.dist - newViewCast.dist) > edgeDstThreshold;
-                    if (oldViewCast.hit != newViewCast.hit || (oldViewCast.hit && newViewCast.hit && edgeDstThresholdExceeded))
+                    bool edgeDstThresholdExceeded = Mathf.Abs(
+                        oldViewCast.dist - newViewCast.dist) > parameters.edgeDstThreshold;
+
+                    if (oldViewCast.hit != newViewCast.hit 
+                        || (oldViewCast.hit && newViewCast.hit && edgeDstThresholdExceeded))
                     {
                         EdgeInfo edge = FindEdge(oldViewCast, newViewCast);
 
@@ -130,12 +170,14 @@ using UnityEngine;
             Vector3 minPoint = Vector3.zero;
             Vector3 maxPoint = Vector3.zero;
 
-            for (int i = 0; i < edgeResolveIterations; i++)
+            for (int i = 0; i < parameters.edgeResolveIterations; i++)
             {
                 float angle = (minAngle + maxAngle) / 2;
                 ViewCastInfo newViewCast = ViewCast(angle);
 
-                bool edgeDstThresholdExceeded = Mathf.Abs(minViewCast.dist - newViewCast.dist) > edgeDstThreshold;
+                bool edgeDstThresholdExceeded = Mathf.Abs(
+                    minViewCast.dist - newViewCast.dist) > parameters.edgeDstThreshold;
+
                 if (newViewCast.hit == minViewCast.hit && !edgeDstThresholdExceeded)
                 {
                     minAngle = angle;
@@ -153,16 +195,29 @@ using UnityEngine;
 
         private ViewCastInfo ViewCast(float globalAngle)
         {
-            Vector3 dir = DirFromAngle(globalAngle, true);
+            Vector3 dir = Util.DirFromAngle(transform.eulerAngles.y, globalAngle, true);
             RaycastHit hit;
 
-            if (Physics.Raycast(transform.position, dir, out hit, viewRaius, obstacleMask))
+            if (Physics.Raycast(
+                transform.position, 
+                dir, 
+                out hit, 
+                parameters.viewRaius, 
+                parameters.obstacleMask))
             {
-                return new ViewCastInfo(true, hit.point, hit.distance, globalAngle);
+                return new ViewCastInfo(
+                    true, 
+                    hit.point, 
+                    hit.distance, 
+                    globalAngle);
             }
             else
             {
-                return new ViewCastInfo(false, transform.position + dir * viewRaius, viewRaius, globalAngle);
+                return new ViewCastInfo(
+                    false, 
+                    transform.position + dir * parameters.viewRaius, 
+                    parameters.viewRaius, 
+                    globalAngle);
             }
         }
 
@@ -194,19 +249,19 @@ using UnityEngine;
             }
         }
 
-        void Start()
-        {
-            viewMesh = new Mesh();
-            viewMesh.name = "View Mesh";
-            viewMeshFilter.mesh = viewMesh;
+        //void Start()
+        //{
+        //    viewMesh = new Mesh();
+        //    viewMesh.name = "View Mesh";
+        //    viewMeshFilter.mesh = viewMesh;
 
-            StartCoroutine(FindTargetsWithDelay(.2f));
-        }
+        //    StartCoroutine(FindTargetsWithDelay(.2f));
+        //}
 
         // Update is called once per frame
-        void LateUpdate()
-        {
-            DrawFieldOfView();
-        }
+        //void LateUpdate()
+        //{
+        //    DrawFieldOfView();
+        //}
     }
-//}
+}
