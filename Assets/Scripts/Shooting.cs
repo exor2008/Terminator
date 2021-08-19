@@ -4,23 +4,21 @@ using UnityEngine;
 
 namespace Game.Shooting
 {
-    public interface IShootBehaviour
+    public class Shooting : MonoBehaviour
     {
-        public float fireRate { get; set; }
-        void Shoot(Vector3 origin, Vector3 direction);
-    }
+        public float fireDist;
+        public float fireRate;
+        private float lastShtTime;
 
-    public class DefaultShootBehaviour : IShootBehaviour
-    {
-        float fireDist;
-        public DefaultShootBehaviour()
+        public void Update()
         {
-            fireDist = 100f;
-            fireRate = .333f;
+            if (Input.GetButton("Fire1"))
+            {
+                Vector3 forward = transform.TransformDirection(Vector3.forward);
+                Shoot(transform.position, forward);
+            }
         }
 
-        public float fireRate { get; set; }
-        private float lastShtTime;
         public void Shoot(Vector3 origin, Vector3 direction)
         {
             if (Time.time - lastShtTime < fireRate) return;

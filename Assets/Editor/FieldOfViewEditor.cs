@@ -3,30 +3,31 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
-using Game.Units;
+using Game.FieldOfView;
 using Util = Game.Utils.Util;
 
-[CustomEditor (typeof (Unit))]
+[CustomEditor (typeof (FieldOfView))]
 public class UnitEditor : Editor
 {
     private void OnSceneGUI()
     {
-        Unit unit = (Unit)target;
-        Debug.Log(unit.transform.position);
+        FieldOfView fow = (FieldOfView)target;
+        Debug.Log(fow.transform.position);
         Handles.color = Color.white;
-        Handles.DrawWireArc(unit.transform.position, Vector3.up, Vector3.forward, 360, unit.viewRaius);
+        Handles.DrawWireArc(fow.transform.position, Vector3.up, Vector3.forward, 360, fow.viewRaius);
 
-        float unitAngle = unit.transform.eulerAngles.y;
-        Vector3 viewAngleA = Util.DirFromAngle(unitAngle, -unit.viewAngle / 2, false);
-        Vector3 viewAngleB = Util.DirFromAngle(unitAngle, unit.viewAngle / 2, false);
+        float unitAngle = fow.transform.eulerAngles.y;
+        Vector3 viewAngleA = Util.DirFromAngle(unitAngle, -fow.viewAngle / 2, false);
+        Vector3 viewAngleB = Util.DirFromAngle(unitAngle, fow.viewAngle / 2, false);
 
-        Handles.DrawLine(unit.transform.position, unit.transform.position + viewAngleA * unit.viewRaius);
-        Handles.DrawLine(unit.transform.position, unit.transform.position + viewAngleB * unit.viewRaius);
+        Handles.DrawLine(fow.transform.position, fow.transform.position + viewAngleA * fow.viewRaius);
+        Handles.DrawLine(fow.transform.position, fow.transform.position + viewAngleB * fow.viewRaius);
 
         Handles.color = Color.green;
-        foreach(Transform visTarget in unit.fieldOfViewBehaviour.GetVisibleTargets())
+
+        foreach (Transform visTarget in fow.GetVisibleTargets())
         {
-            Handles.DrawLine(unit.transform.position, visTarget.position);
+            Handles.DrawLine(fow.transform.position, visTarget.position);
         }
     }
 }

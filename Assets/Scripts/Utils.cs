@@ -18,5 +18,11 @@ namespace Game.Utils
             float z = Mathf.Cos(angleDeg * Mathf.Deg2Rad);
             return new Vector3(x, 0, z);
         }
+
+        public static void FacePoint(Rigidbody rb, Transform transform, Vector3 target)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(target - transform.position);
+            rb.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 7f * Time.fixedDeltaTime);
+        }
     }
 }

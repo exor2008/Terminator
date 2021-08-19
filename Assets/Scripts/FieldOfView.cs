@@ -6,15 +6,7 @@ using Util = Game.Utils.Util;
 
 namespace Game.FieldOfView
 {
-    public interface IFieldOfViewBehaviour
-    {
-        public void FindVisibleTargets();
-        public void DrawFieldOfView();
-
-        public List<Transform> GetVisibleTargets();
-    }
-
-    public struct FieldOfViewParameters
+    public class FieldOfView : MonoBehaviour
     {
         public float viewRaius;
         [Range(0, 360)]
@@ -29,47 +21,24 @@ namespace Game.FieldOfView
         public float edgeDstThreshold;
         public float meshResolution;
 
-        public FieldOfViewParameters(
-            float _viewRaius,
-            float _viewAngle,
-            LayerMask _targetMak,
-            LayerMask _obstacleMask,
-            MeshFilter _viewMeshFilter,
-            int _edgeResolveIterations,
-            float _edgeDstThreshold,
-            float _meshResolution)
-        {
-            viewRaius = _viewRaius;
-            viewAngle = _viewAngle;
-            targetMak = _targetMak;
-            obstacleMask = _obstacleMask;
-            viewMeshFilter = _viewMeshFilter;
-            edgeResolveIterations = _edgeResolveIterations;
-            edgeDstThreshold = _edgeDstThreshold;
-            meshResolution = _meshResolution;
-    }
-    }
-
-    public class MeshFieldOfViewBehaviour : IFieldOfViewBehaviour
-    {
-
-        protected Transform transform;
-        protected FieldOfViewParameters parameters;
-
         Mesh viewMesh;
 
         [HideInInspector]
         public List<Transform> visibleTargets = new List<Transform>();
 
-        public MeshFieldOfViewBehaviour(Transform _transform, FieldOfViewParameters _parameters)
+        public void Start()
         {
-            parameters = _parameters;
-
             viewMesh = new Mesh();
             viewMesh.name = "View Mesh";
-            parameters.viewMeshFilter.mesh = viewMesh;
-            transform = _transform;
+            viewMeshFilter.mesh = viewMesh;
+            FindTargetsWithDelay(.3f);
         }
+
+        void LateUpdate()
+        {
+            DrawFieldOfView();
+        }
+
         public IEnumerator FindTargetsWithDelay(float delay)
         {
             while (true)
@@ -83,17 +52,17 @@ namespace Game.FieldOfView
             visibleTargets.Clear();
             Collider[] targetsInViewRadius = Physics.OverlapSphere(
                 transform.position, 
-                parameters.viewRaius, 
-                parameters.targetMak);
+                viewRaius, 
+                targetMak);
 
             foreach (Collider ctarget in targetsInViewRadius)
             {
                 Transform target = ctarget.transform;
                 Vector3 dirToTarget = (target.position - transform.position).normalized;
-                if (Vector3.Angle(transform.forward, dirToTarget) < parameters.viewAngle / 2)
+                if (Vector3.Angle(transform.forward, dirToTarget) < viewAngle / 2)
                 {
                     float distToTarget = Vector3.Distance(transform.position, target.position);
-                    if (!Physics.Raycast(transform.position, dirToTarget, distToTarget, parameters.obstacleMask))
+                    if (!Physics.Raycast(transform.position, dirToTarget, distToTarget, obstacleMask))
                     {
                         visibleTargets.Add(target);
                     }
@@ -108,20 +77,20 @@ namespace Game.FieldOfView
 
         public void DrawFieldOfView()
         {
-            int stepCount = Mathf.RoundToInt(parameters.viewAngle * parameters.meshResolution);
-            float stepAngleSize = parameters.viewAngle / stepCount;
+            int stepCount = Mathf.RoundToInt(viewAngle * meshResolution);
+            float stepAngleSize = viewAngle / stepCount;
             List<Vector3> viewPoints = new List<Vector3>();
             ViewCastInfo oldViewCast = new ViewCastInfo();
 
             for (int i = 0; i <= stepCount; i++)
             {
-                float angle = transform.eulerAngles.y - parameters.viewAngle / 2 + stepAngleSize * i;
+                float angle = transform.eulerAngles.y - viewAngle / 2 + stepAngleSize * i;
                 ViewCastInfo newViewCast = ViewCast(angle);
 
                 if (i > 0)
                 {
                     bool edgeDstThresholdExceeded = Mathf.Abs(
-                        oldViewCast.dist - newViewCast.dist) > parameters.edgeDstThreshold;
+                        oldViewCast.dist - newViewCast.dist) > edgeDstThreshold;
 
                     if (oldViewCast.hit != newViewCast.hit 
                         || (oldViewCast.hit && newViewCast.hit && edgeDstThresholdExceeded))
@@ -170,13 +139,13 @@ namespace Game.FieldOfView
             Vector3 minPoint = Vector3.zero;
             Vector3 maxPoint = Vector3.zero;
 
-            for (int i = 0; i < parameters.edgeResolveIterations; i++)
+            for (int i = 0; i < edgeResolveIterations; i++)
             {
                 float angle = (minAngle + maxAngle) / 2;
                 ViewCastInfo newViewCast = ViewCast(angle);
 
                 bool edgeDstThresholdExceeded = Mathf.Abs(
-                    minViewCast.dist - newViewCast.dist) > parameters.edgeDstThreshold;
+                    minViewCast.dist - newViewCast.dist) > edgeDstThreshold;
 
                 if (newViewCast.hit == minViewCast.hit && !edgeDstThresholdExceeded)
                 {
@@ -202,22 +171,16 @@ namespace Game.FieldOfView
                 transform.position, 
                 dir, 
                 out hit, 
-                parameters.viewRaius, 
-                parameters.obstacleMask))
+                viewRaius, 
+                obstacleMask))
             {
                 return new ViewCastInfo(
-                    true, 
-                    hit.point, 
-                    hit.distance, 
-                    globalAngle);
+                    true, hit.point, hit.distance, globalAngle);
             }
             else
             {
                 return new ViewCastInfo(
-                    false, 
-                    transform.position + dir * parameters.viewRaius, 
-                    parameters.viewRaius, 
-                    globalAngle);
+                    false, transform.position + dir * viewRaius, viewRaius, globalAngle);
             }
         }
 
@@ -248,20 +211,5 @@ namespace Game.FieldOfView
                 pointB = _pointB;
             }
         }
-
-        //void Start()
-        //{
-        //    viewMesh = new Mesh();
-        //    viewMesh.name = "View Mesh";
-        //    viewMeshFilter.mesh = viewMesh;
-
-        //    StartCoroutine(FindTargetsWithDelay(.2f));
-        //}
-
-        // Update is called once per frame
-        //void LateUpdate()
-        //{
-        //    DrawFieldOfView();
-        //}
     }
 }

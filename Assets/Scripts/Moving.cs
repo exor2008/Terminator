@@ -2,38 +2,20 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Game.Moving
+using Util = Game.Utils.Util;
+
+
+    public class Moving : MonoBehaviour
 {
-    public interface IWalkBehaviour
-    {
-        public float speed { get; set; }
-        void Move(Vector3 direction, float dt);
-    }
-
-    public interface IMoveInput
-    {
-        public Vector3 GetMoveInput();
-    }
-
-    public class HumanoidWalkBehaviour : IWalkBehaviour
-    {
         public Rigidbody rb;
-        public float speed { get; set; }
+        public Camera cam;
+        public float speed;
 
-        public HumanoidWalkBehaviour(Rigidbody rb, float speed)
+        public void Move(Vector3 direction)
         {
-            this.rb = rb;
-            this.speed = speed;
+            rb.MovePosition(rb.position + direction * speed * Time.fixedDeltaTime);
         }
 
-        public void Move(Vector3 direction, float dt)
-        {
-            rb.MovePosition(rb.position + direction * speed * dt); //ime.fixedDeltaTime);
-        }
-    }
-
-    public class MoveInput: IMoveInput
-    {
         public Vector3 GetMoveInput()
         {
             Vector3 moveInput = new Vector3();
@@ -41,5 +23,23 @@ namespace Game.Moving
             moveInput.z = Input.GetAxis("Vertical");
             return moveInput;
         }
+
+        public void FixedUpdate()
+        {
+            Vector3 moveInput = GetMoveInput();
+            FaceMousePoint();
+            Move(moveInput);
+
+        }
+        void FaceMousePoint()
+        {
+            Plane playerPlane = new Plane(Vector3.up, transform.position);
+            Ray ray = cam.ScreenPointToRay(Input.mousePosition);
+            float hitDist = 0.0f;
+            if (playerPlane.Raycast(ray, out hitDist))
+            {
+                Vector3 targetPoint = ray.GetPoint(hitDist);
+                Util.FacePoint(rb, transform, targetPoint);
+            }
+        }
     }
-}
