@@ -4,10 +4,11 @@ using UnityEngine;
 
 using Util = Game.Utils.Util;
 
-namespace Game.FieldOfView
+namespace Game.FieldsOfView
 {
-    public class FieldOfView : MonoBehaviour
+    public class FieldOfView
     {
+        public Transform transform;
         public float viewRaius;
         [Range(0, 360)]
         public float viewAngle;
@@ -26,17 +27,30 @@ namespace Game.FieldOfView
         [HideInInspector]
         public List<Transform> visibleTargets = new List<Transform>();
 
-        public void Start()
+        public FieldOfView(
+            Transform _transform,
+            float _viewRaius,
+            float _viewAngle,
+            LayerMask _targetMak,
+            LayerMask _obstacleMask,
+            MeshFilter _viewMeshFilter,
+            int _edgeResolveIterations,
+            float _edgeDstThreshold,
+            float _meshResolution)
         {
+            transform = _transform;
+            viewRaius = _viewRaius;
+            viewAngle = _viewAngle;
+            targetMak = _targetMak;
+            obstacleMask = _obstacleMask;
+            viewMeshFilter = _viewMeshFilter;
+            edgeResolveIterations = _edgeResolveIterations;
+            edgeDstThreshold = _edgeDstThreshold;
+            meshResolution = _meshResolution;
+
             viewMesh = new Mesh();
             viewMesh.name = "View Mesh";
             viewMeshFilter.mesh = viewMesh;
-            FindTargetsWithDelay(.3f);
-        }
-
-        void LateUpdate()
-        {
-            DrawFieldOfView();
         }
 
         public IEnumerator FindTargetsWithDelay(float delay)

@@ -2,24 +2,40 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Game.Shooting
+namespace Game.Weapons
 {
-    public class Shooting : MonoBehaviour
+    public abstract class Weapon
     {
         public float fireDist;
         public float fireRate;
-        private float lastShtTime;
+        protected float lastShtTime;
 
-        public void Update()
+        public Weapon(
+            float _fireDist,
+            float _fireRate)
         {
-            if (Input.GetButton("Fire1"))
-            {
-                Vector3 forward = transform.TransformDirection(Vector3.forward);
-                Shoot(transform.position, forward);
-            }
+            fireDist = _fireDist;
+            fireRate = _fireRate;
         }
 
-        public void Shoot(Vector3 origin, Vector3 direction)
+        public virtual void Shoot(Vector3 origin, Vector3 direction)
+        { }
+    }
+
+    public class DebugWeapon: Weapon
+    {
+        const float FIRE_DIST = 10;
+        const float FIRE_RATE = .5f;
+
+        public DebugWeapon(
+            float _fireDist = FIRE_DIST,
+            float _fireRate = FIRE_RATE)
+            : base(
+                _fireDist,
+                _fireRate)
+        { }
+
+        public override void Shoot(Vector3 origin, Vector3 direction)
         {
             if (Time.time - lastShtTime < fireRate) return;
 

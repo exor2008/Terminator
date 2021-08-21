@@ -4,34 +4,33 @@ using UnityEngine;
 
 using Util = Game.Utils.Util;
 
-
-    public class Moving : MonoBehaviour
+namespace Game.Move
 {
+    public class Mover
+    {
         public Rigidbody rb;
+        public Transform transform;
         public Camera cam;
         public float speed;
+
+        public Mover(
+            Rigidbody _rb,
+            Transform _transform,
+            Camera _cam,
+            float _speed)
+        {
+            rb = _rb;
+            transform = _transform;
+            cam = _cam;
+            speed = _speed;
+        }
 
         public void Move(Vector3 direction)
         {
             rb.MovePosition(rb.position + direction * speed * Time.fixedDeltaTime);
         }
 
-        public Vector3 GetMoveInput()
-        {
-            Vector3 moveInput = new Vector3();
-            moveInput.x = Input.GetAxis("Horizontal");
-            moveInput.z = Input.GetAxis("Vertical");
-            return moveInput;
-        }
-
-        public void FixedUpdate()
-        {
-            Vector3 moveInput = GetMoveInput();
-            FaceMousePoint();
-            Move(moveInput);
-
-        }
-        void FaceMousePoint()
+        public void FaceMousePoint()
         {
             Plane playerPlane = new Plane(Vector3.up, transform.position);
             Ray ray = cam.ScreenPointToRay(Input.mousePosition);
@@ -43,3 +42,4 @@ using Util = Game.Utils.Util;
             }
         }
     }
+}

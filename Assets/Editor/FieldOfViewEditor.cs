@@ -3,15 +3,16 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
-using Game.FieldOfView;
+using Game.Units;
+using Game.FieldsOfView;
 using Util = Game.Utils.Util;
 
-[CustomEditor (typeof (FieldOfView))]
+[CustomEditor (typeof (Unit))]
 public class UnitEditor : Editor
 {
     private void OnSceneGUI()
     {
-        FieldOfView fow = (FieldOfView)target;
+        FieldOfView fow = ((PlayerControled)target).unit.fieldOfView;
         Debug.Log(fow.transform.position);
         Handles.color = Color.white;
         Handles.DrawWireArc(fow.transform.position, Vector3.up, Vector3.forward, 360, fow.viewRaius);

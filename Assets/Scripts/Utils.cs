@@ -13,7 +13,6 @@ namespace Game.Utils
                 angleDeg += angle;
             }
 
-
             float x = Mathf.Sin(angleDeg * Mathf.Deg2Rad);
             float z = Mathf.Cos(angleDeg * Mathf.Deg2Rad);
             return new Vector3(x, 0, z);
