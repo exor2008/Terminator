@@ -43,7 +43,7 @@ namespace Game.Weapons
             RaycastHit hitInfo;
 
             Ray ray = new Ray(origin, direction);
-            if (Physics.Raycast(ray, out hitInfo))
+            if (Physics.Raycast(ray, out hitInfo, fireDist))
             {
                 Debug.DrawLine(origin, hitInfo.point, Color.red, .3f);
                 //Debug.Log(string.Format("Hit {0}", hitInfo.collider.name));

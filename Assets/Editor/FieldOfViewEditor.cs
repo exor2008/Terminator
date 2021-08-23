@@ -12,7 +12,7 @@ public class UnitEditor : Editor
 {
     private void OnSceneGUI()
     {
-        FieldOfView fow = ((PlayerControled)target).unit.fieldOfView;
+        FieldOfView fow = ((Unit)target).fieldOfView;
         Debug.Log(fow.transform.position);
         Handles.color = Color.white;
         Handles.DrawWireArc(fow.transform.position, Vector3.up, Vector3.forward, 360, fow.viewRaius);

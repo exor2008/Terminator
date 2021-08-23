@@ -10,6 +10,12 @@ public class FollowPlayer : MonoBehaviour
 
     void FixedUpdate()
     {
+        if (player == null) return;
         transform.position = Vector3.SmoothDamp(transform.position, player.transform.position + offset, ref velocity, 0.3f);
+    }
+
+    public void SetPlayer(GameObject _player)
+    {
+        player = _player;
     }
 }
