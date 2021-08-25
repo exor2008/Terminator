@@ -7,6 +7,7 @@ using Game.Weapons;
 using Game.FieldsOfView;
 using Game.Move;
 using Game.States;
+using Game.Healths;
 
 namespace Game.Units
 {
@@ -31,12 +32,13 @@ namespace Game.Units
         public Weapon weapon;
         public FieldOfView fieldOfView;
         public StateManager stateManager;
+        public Health healt;
         public Side side;
 
 
         public virtual void Start()
         {
-            weapon = new DebugWeapon();
+            weapon = new DebugWeapon(targetMask);
             fieldOfView = new FieldOfView(
                 transform,
                 viewRadius,
@@ -49,6 +51,7 @@ namespace Game.Units
                 meshResolution);
             StartCoroutine(fieldOfView.FindTargetsWithDelay(.3f));
             mover = new Mover(rb, transform, cam, speed);
+            healt = new Health(this);
             stateManager = new StateManager(new IdleState(this));
         }
 
@@ -91,6 +94,22 @@ namespace Game.Units
         public List<Transform> GetVisibleTargets()
         {
             return fieldOfView.GetVisibleTargets();
+        }
+
+        public void StopNavAgent()
+        {
+            if (navAgent.enabled)
+            {
+                navAgent.enabled = false;
+            }
+        }
+
+        public void StartNavAgent()
+        {
+            if (!navAgent.enabled)
+            {
+                navAgent.enabled = true;
+            }
         }
     }
 }

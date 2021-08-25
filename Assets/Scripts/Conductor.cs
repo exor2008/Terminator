@@ -85,7 +85,6 @@ public class Conductor : MonoBehaviour
         if (prevUnit != null)
         {
             prevUnit.SwitchState(new RoamingState(prevUnit));
-            prevUnit.navAgent.enabled = true;
         }
 
         currentUnit = players[index];
@@ -95,7 +94,6 @@ public class Conductor : MonoBehaviour
         FollowPlayer followPlayer = cam.GetComponent<FollowPlayer>();
         followPlayer.SetPlayer(currentUnit);
 
-        curUnit.navAgent.enabled = false;
         curUnit.SwitchState(new PlayerControlState(curUnit));
         
     }

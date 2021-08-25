@@ -22,7 +22,10 @@ namespace Game.States
 
     public class IdleState: State
     {
-        public IdleState(Unit unit) : base(unit) { }
+        public IdleState(Unit unit) : base(unit) 
+        {
+            unit.StopNavAgent();
+        }
         public override State Update()
         {
             return this;
@@ -37,6 +40,7 @@ namespace Game.States
         public RoamingState(Unit unit) : base(unit) 
         {
             desiredDestination = GetNewDestination();
+            unit.StartNavAgent();
         }
         public override State Update()
         {
@@ -54,7 +58,6 @@ namespace Game.States
             else 
             {
                 Debug.Log("Roaming -> Aaiming");
-                unit.navAgent.isStopped = true;
                 return new AimState(unit);
             }
             
@@ -70,7 +73,10 @@ namespace Game.States
 
     public class PlayerControlState : State
     {
-        public PlayerControlState(Unit unit) : base(unit) { }
+        public PlayerControlState(Unit unit) : base(unit) 
+        {
+            unit.StopNavAgent();
+        }
         public override State Update()
         {
             if (Input.GetButton("Fire1"))
@@ -103,14 +109,16 @@ namespace Game.States
     {
         protected Transform target;
         protected List<Transform> visibleTargets;
-        public AimState(Unit unit) : base(unit) { }
+        public AimState(Unit unit) : base(unit) 
+        {
+            unit.StopNavAgent();
+        }
         public override State Update()
         {
             visibleTargets = unit.GetVisibleTargets();
             if (visibleTargets.Count == 0)
             {
                 Debug.Log("Aaiming -> Roaming");
-                unit.navAgent.isStopped = false;
                 return new RoamingState(unit);
             }
             else
@@ -140,13 +148,11 @@ namespace Game.States
 
         public bool SeeTarget(float angle, Transform target)
         {
-            //ViewCastInfo hit = unit.fieldOfView.ViewCast(unit.transform.eulerAngles.y);
             RaycastHit hit;
             Physics.Raycast(
                 unit.transform.position, 
                 unit.transform.TransformDirection(Vector3.forward), out hit);
 
-            //Debug.Log(hit.transform);
             return hit.transform == target;
         }
 
@@ -161,6 +167,7 @@ namespace Game.States
         public AttackState(Unit unit, Transform _target) : base(unit) 
         {
             target = _target;
+            unit.StopNavAgent();
         }
         public override State Update()
         {
@@ -179,6 +186,35 @@ namespace Game.States
             }
         }
         public override void FixedUpdate() { }
+        public override void LateUpdate() { }
+    }
+
+    public class AttackedState: State
+    {
+        Vector3 hitPos;
+        Quaternion rotationLeft;
+        public AttackedState(Unit _unit, Vector3 _hitPos): base(_unit)
+        {
+            hitPos = _hitPos;
+            _unit.StopNavAgent();
+            rotationLeft = Quaternion.Euler(0, 90, 0);
+        }
+        public override State Update()
+        {
+            Vector3 diff = unit.rb.rotation.eulerAngles - rotationLeft.eulerAngles;
+            if (Mathf.Abs(diff.y) < 5)
+            {
+                return new AimState(unit);
+            }
+            else
+            {
+                return this;
+            }
+        }
+        public override void FixedUpdate() 
+        {
+            rotationLeft = Util.FacePoint(unit.rb, unit.transform, hitPos);
+        }
         public override void LateUpdate() { }
     }
 }

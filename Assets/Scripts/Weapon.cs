@@ -2,12 +2,16 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+using Game.Units;
+using Game.States;
+
 namespace Game.Weapons
 {
     public abstract class Weapon
     {
         public float fireDist;
         public float fireRate;
+        public int damage;
         protected float lastShtTime;
 
         public Weapon(
@@ -20,6 +24,20 @@ namespace Game.Weapons
 
         public virtual void Shoot(Vector3 origin, Vector3 direction)
         { }
+
+        public void DealDamage(Unit unit)
+        {
+            unit.healt.TakeDamage(damage);
+        }
+        public void AwareAttacked(Unit unit, Vector3 hitPos)
+        {
+            if (unit.GetCurrentState() is PlayerControlState)
+            {
+                return;
+            }
+            unit.SwitchState(new AttackedState(unit, hitPos));
+            Debug.Log("Attacked");
+        }
     }
 
     public class DebugWeapon: Weapon
@@ -47,6 +65,11 @@ namespace Game.Weapons
             {
                 Debug.DrawLine(origin, hitInfo.point, Color.red, .3f);
                 //Debug.Log(string.Format("Hit {0}", hitInfo.collider.name));
+                Unit attacked = hitInfo.transform.GetComponentInParent<Unit>();
+                if (attacked != null)
+                {
+                    AwareAttacked(attacked, hitInfo.point);
+                }
             }
             else
             {
