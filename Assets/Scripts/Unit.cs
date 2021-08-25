@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 using Game.Weapons;
 using Game.FieldsOfView;
@@ -18,7 +19,8 @@ namespace Game.Units
         public LayerMask targetMask;
         public LayerMask obstacleMask;
         public MeshFilter viewMeshFilter;
-        Rigidbody rb;
+        public Rigidbody rb;
+        public NavMeshAgent navAgent;
         
         public int edgeResolveIterations;
         public float edgeDistThreshold;
@@ -29,9 +31,10 @@ namespace Game.Units
         public Weapon weapon;
         public FieldOfView fieldOfView;
         public StateManager stateManager;
+        public Side side;
 
 
-        public void Start()
+        public virtual void Start()
         {
             weapon = new DebugWeapon();
             fieldOfView = new FieldOfView(
@@ -44,7 +47,7 @@ namespace Game.Units
                 edgeResolveIterations,
                 edgeDistThreshold,
                 meshResolution);
-            rb = GetComponent<Rigidbody>();
+            StartCoroutine(fieldOfView.FindTargetsWithDelay(.3f));
             mover = new Mover(rb, transform, cam, speed);
             stateManager = new StateManager(new IdleState(this));
         }
@@ -82,23 +85,18 @@ namespace Game.Units
         public void SetCamera(Camera _cam)
         {
             cam = _cam;
+            mover.SetCamera(cam);
+        }
+
+        public List<Transform> GetVisibleTargets()
+        {
+            return fieldOfView.GetVisibleTargets();
         }
     }
+}
 
-    //public struct UnitParameters
-    //{
-    //    float viewRadius;
-    //    float viewAngle;
-
-    //    public LayerMask targetMask;
-    //    public LayerMask obstacleMask;
-
-    //    public MeshFilter viewMeshFilter;
-    //    Rigidbody rb;
-
-    //    public int edgeResolveIterations;
-    //    public float edgeDistThreshold;
-    //    public float meshResolution;
-    //    public float speed;
-    //}
+public enum Side
+{
+    Humans,
+    Terminators
 }

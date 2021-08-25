@@ -41,5 +41,10 @@ namespace Game.Move
                 Util.FacePoint(rb, transform, targetPoint);
             }
         }
+
+        public void SetCamera(Camera _cam)
+        {
+            cam = _cam;
+        }
     }
 }

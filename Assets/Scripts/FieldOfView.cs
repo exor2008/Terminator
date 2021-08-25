@@ -25,7 +25,7 @@ namespace Game.FieldsOfView
         Mesh viewMesh;
 
         [HideInInspector]
-        public List<Transform> visibleTargets = new List<Transform>();
+        protected List<Transform> visibleTargets = new List<Transform>();
 
         public FieldOfView(
             Transform _transform,
@@ -176,7 +176,7 @@ namespace Game.FieldsOfView
             return new EdgeInfo(minPoint, maxPoint);
         }
 
-        private ViewCastInfo ViewCast(float globalAngle)
+        public ViewCastInfo ViewCast(float globalAngle)
         {
             Vector3 dir = Util.DirFromAngle(transform.eulerAngles.y, globalAngle, true);
             RaycastHit hit;
@@ -189,41 +189,43 @@ namespace Game.FieldsOfView
                 obstacleMask))
             {
                 return new ViewCastInfo(
-                    true, hit.point, hit.distance, globalAngle);
+                    true, hit.point, hit.distance, globalAngle, hit.transform);
             }
             else
             {
                 return new ViewCastInfo(
-                    false, transform.position + dir * viewRaius, viewRaius, globalAngle);
+                    false, transform.position + dir * viewRaius, viewRaius, globalAngle, null);
             }
         }
+    }
 
-        private struct ViewCastInfo
+    public struct ViewCastInfo
+    {
+        public bool hit;
+        public Vector3 point;
+        public float dist;
+        public float angle;
+        public Transform transform;
+
+        public ViewCastInfo(bool _hit, Vector3 _point, float _dist, float _angle, Transform _transform)
         {
-            public bool hit;
-            public Vector3 point;
-            public float dist;
-            public float angle;
-
-            public ViewCastInfo(bool _hit, Vector3 _point, float _dist, float _angle)
-            {
-                hit = _hit;
-                point = _point;
-                dist = _dist;
-                angle = _angle;
-            }
+            hit = _hit;
+            point = _point;
+            dist = _dist;
+            angle = _angle;
+            transform = _transform;
         }
+    }
 
-        private struct EdgeInfo
+    public struct EdgeInfo
+    {
+        public Vector3 pointA;
+        public Vector3 pointB;
+
+        public EdgeInfo(Vector3 _pointA, Vector3 _pointB)
         {
-            public Vector3 pointA;
-            public Vector3 pointB;
-
-            public EdgeInfo(Vector3 _pointA, Vector3 _pointB)
-            {
-                pointA = _pointA;
-                pointB = _pointB;
-            }
+            pointA = _pointA;
+            pointB = _pointB;
         }
     }
 }
