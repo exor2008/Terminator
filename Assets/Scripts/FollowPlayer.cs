@@ -5,7 +5,7 @@ using UnityEngine;
 public class FollowPlayer : MonoBehaviour
 {
     public GameObject player;
-    private Vector3 offset = new Vector3(0, 13, 0);
+    private Vector3 offset = new Vector3(0, 35, 0);
     private Vector3 velocity = Vector3.zero;
 
     void FixedUpdate()

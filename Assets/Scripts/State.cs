@@ -171,7 +171,7 @@ namespace Game.States
         }
         public override State Update()
         {
-            bool canSee = SeeTarget(unit.transform.eulerAngles.y, target);
+            bool canSee = (target != null) && SeeTarget(unit.transform.eulerAngles.y, target);
 
             if (canSee)
             {
@@ -193,6 +193,7 @@ namespace Game.States
     {
         Vector3 hitPos;
         Quaternion rotationLeft;
+        const float angleToTarget = 5f;
         public AttackedState(Unit _unit, Vector3 _hitPos): base(_unit)
         {
             hitPos = _hitPos;
@@ -202,8 +203,9 @@ namespace Game.States
         public override State Update()
         {
             Vector3 diff = unit.rb.rotation.eulerAngles - rotationLeft.eulerAngles;
-            if (Mathf.Abs(diff.y) < 5)
+            if (Mathf.Abs(diff.y) < angleToTarget)
             {
+                // no longer can see target, start aiming
                 return new AimState(unit);
             }
             else

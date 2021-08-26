@@ -20,15 +20,21 @@ public class Conductor : MonoBehaviour
 
     void Start()
     {
-        currentUnit = SpawnHumanUnit(unitHumanPrefab, new Vector3(0, .5f, 0));
+        //currentUnit = SpawnHumanUnit(unitHumanPrefab, new Vector3(0, .5f, 0));
         currentUnitIdx = 0;
-        StartCoroutine(SwitchPlayerWithDelay(currentUnitIdx));
+        //StartCoroutine(SwitchPlayerWithDelay(currentUnitIdx));
 
-        for (int i = 0; i < 1; i++)
+        for (int i = 0; i < 10; i++)
         {
-            Vector3 randPos = new Vector3(Random.Range(-10, 10), 0.5f, Random.Range(-10, 10));
+            //Vector3 randPos = new Vector3(Random.Range(-10, 10), 0.5f, Random.Range(-10, 10));
+            Vector3 randPos = new Vector3(3*i, .5f, 20);
             GameObject terminator = SpawnTerminatorUnit(unitTerminatorPrefab, randPos);
             StartCoroutine(InitTerminatorWithDelay(terminator));
+
+            Vector3 randPos2 = new Vector3(3*i, .5f, -20);
+            GameObject human = SpawnHumanUnit(unitHumanPrefab, randPos2);
+
+            StartCoroutine(SwitchPlayerWithDelay(GetNextIdx()));
         }
     }
 

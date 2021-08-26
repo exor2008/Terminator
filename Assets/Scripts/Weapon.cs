@@ -16,10 +16,12 @@ namespace Game.Weapons
 
         public Weapon(
             float _fireDist,
-            float _fireRate)
+            float _fireRate,
+            int _damage)
         {
             fireDist = _fireDist;
             fireRate = _fireRate;
+            damage = _damage;
         }
 
         public virtual void Shoot(Vector3 origin, Vector3 direction)
@@ -27,7 +29,7 @@ namespace Game.Weapons
 
         public void DealDamage(Unit unit)
         {
-            unit.healt.TakeDamage(damage);
+            unit.health.TakeDamage(damage);
         }
         public void AwareAttacked(Unit unit, Vector3 hitPos)
         {
@@ -42,15 +44,18 @@ namespace Game.Weapons
 
     public class DebugWeapon: Weapon
     {
-        const float FIRE_DIST = 10;
+        const float FIRE_DIST = 30;
         const float FIRE_RATE = .5f;
+        const int DAMAGE = 45;
 
         public DebugWeapon(
             float _fireDist = FIRE_DIST,
-            float _fireRate = FIRE_RATE)
+            float _fireRate = FIRE_RATE,
+            int _damage = DAMAGE)
             : base(
                 _fireDist,
-                _fireRate)
+                _fireRate,
+                _damage)
         { }
 
         public override void Shoot(Vector3 origin, Vector3 direction)
@@ -69,6 +74,7 @@ namespace Game.Weapons
                 if (attacked != null)
                 {
                     AwareAttacked(attacked, hitInfo.point);
+                    DealDamage(attacked);
                 }
             }
             else

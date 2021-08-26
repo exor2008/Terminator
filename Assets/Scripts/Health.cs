@@ -22,6 +22,10 @@ namespace Game.Healths
         public int TakeDamage(int damage)
         {
             hp -= damage;
+            if (hp <= 0)
+            {
+                unit.Die();
+            }
             return hp;
         }
         public void AwareAttacked(Vector3 hitPos)

@@ -32,13 +32,13 @@ namespace Game.Units
         public Weapon weapon;
         public FieldOfView fieldOfView;
         public StateManager stateManager;
-        public Health healt;
+        public Health health;
         public Side side;
-
+        public GameObject unitOdj;
 
         public virtual void Start()
         {
-            weapon = new DebugWeapon(targetMask);
+            weapon = new DebugWeapon();
             fieldOfView = new FieldOfView(
                 transform,
                 viewRadius,
@@ -51,7 +51,7 @@ namespace Game.Units
                 meshResolution);
             StartCoroutine(fieldOfView.FindTargetsWithDelay(.3f));
             mover = new Mover(rb, transform, cam, speed);
-            healt = new Health(this);
+            health = new Health(this);
             stateManager = new StateManager(new IdleState(this));
         }
 
@@ -110,6 +110,12 @@ namespace Game.Units
             {
                 navAgent.enabled = true;
             }
+        }
+
+        public void Die()
+        {
+            Debug.Log(string.Format("{0} Died.", unitOdj));
+            Destroy(unitOdj);
         }
     }
 }
